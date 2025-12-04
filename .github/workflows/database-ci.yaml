@@ -1,0 +1,48 @@
+name: Build Database Package
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package-db:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed to create releases
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate version number
+        id: version
+        run: |
+          YEAR=$(date +'%y')
+          VERSION="${YEAR}.1.${{ github.run_number }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create ZIP package from src/Database
+        run: |
+          mkdir -p build
+          zip -r build/database-${VERSION}.zip src/Database
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: "Database Package ${{ env.VERSION }}"
+          draft: false
+          prerelease: false
+
+      - name: Upload ZIP to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/database-${{ env.VERSION }}.zip
+          asset_name: database-${{ env.VERSION }}.zip
+          asset_content_type: application/zip

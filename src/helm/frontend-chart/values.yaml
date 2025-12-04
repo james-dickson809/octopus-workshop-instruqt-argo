@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: #{Kubernetes.Application.Namespace}
+  tag: #{Octopus.Release.Number}
+  pullPolicy: IfNotPresent
+
+imagePullSecrets:
+  - name: ghcr-pull-secret
+
+service:
+  type: ClusterIP
+  port: 81
