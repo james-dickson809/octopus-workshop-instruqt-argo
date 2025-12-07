@@ -57,6 +57,6 @@ process_template "run-a-process-template" {
     }
 
     parameter "parameter.package.path" {
-        value = "filesystem:#{Octopus.Action.Package[adamoctoclose/octopus-workshop-instruqt-argo].ExtractedPath}/src/database"
+        value = "filesystem:#{Octopus.Action.Package[sample].ExtractedPath}/src/database"
     }
 }
