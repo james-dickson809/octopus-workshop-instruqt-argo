@@ -7,8 +7,7 @@ jobs:
   package-db:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      packages: write
+      contents: write   # REQUIRED for creating releases
 
     env:
       PACKAGE_NAME: database
@@ -30,28 +29,24 @@ jobs:
           mkdir -p build
           zip -r build/${PACKAGE_NAME}-${VERSION}.zip src/Database
 
-      - name: Install ORAS CLI
-        uses: oras-project/setup-oras@v1
+      # ------------------------------
+      # Create GitHub Release instead of OCI push
+      # ------------------------------
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
         with:
-          version: 1.2.2
+          tag_name: ${{ env.VERSION }}
+          name: "Database Package ${{ env.VERSION }}"
+          body: |
+            Automated release for database package version **${{ env.VERSION }}**.
+          files: |
+            build/${{ env.PACKAGE_NAME }}-${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login to GHCR
+      - name: Output release info
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io \
-            --username ${{ github.repository_owner }} \
-            --password-stdin
-
-      - name: Push ZIP to GHCR as OCI Artifact
-        run: |
-          cd build
-          oras push ghcr.io/${{ github.repository_owner }}/${PACKAGE_NAME}:${VERSION} \
-            --artifact-type application/zip \
-            ${PACKAGE_NAME}-${VERSION}.zip
-
-          # Optional tag
-          oras tag ghcr.io/${{ github.repository_owner }}/${PACKAGE_NAME}:${VERSION} latest
-
-      - name: Output package location
-        run: |
-          echo "Pushed to: ghcr.io/${{ github.repository_owner }}/${PACKAGE_NAME}:${VERSION}"
-          echo "Also tagged 'latest'."
+          echo "Release created:"
+          echo "${{ steps.create_release.outputs.release_url }}"
