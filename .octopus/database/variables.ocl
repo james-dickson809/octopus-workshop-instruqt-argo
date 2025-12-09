@@ -1,0 +1,5 @@
+variable "awsaccount" {
+    type = "AmazonWebServicesAccount"
+
+    value "oct-lab" {}
+}
