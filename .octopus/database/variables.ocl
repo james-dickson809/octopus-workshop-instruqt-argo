@@ -1,4 +1,4 @@
-variable "awsaccount" {
+variable "aws.account" {
     type = "AmazonWebServicesAccount"
 
     value "oct-lab" {}
